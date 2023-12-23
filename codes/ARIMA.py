@@ -1,6 +1,5 @@
 import os
 import arch
-import warnings
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
@@ -10,82 +9,79 @@ from statsmodels.tsa.stattools import adfuller
 from statsmodels.graphics.tsaplots import plot_acf
 from statsmodels.graphics.tsaplots import plot_pacf
 
-warnings.filterwarnings("ignore")
-
 
 class ARIMA:
     def __init__(self, data: pd.DataFrame):
-        self.data = data
-        self.data = self.data.astype(float)
-        self.model = []
+        self.data = data.astype(float)
 
-    def plot_time_series(self, data: pd.DataFrame, seasonality: int):
-        if isinstance(data, pd.Series):
+    def plot_time_series(self, seasonality: int):
+
+        if isinstance(self.data, pd.Series):
             timeline = 1
         else:
-            timeline = len(data.columns)
+            timeline = len(self.data.columns)
 
         for i in range(timeline):
             f, axes = plt.subplots(nrows=5, ncols=1, figsize=(9, 3 * 5))
-            axes[0].plot(data.iloc[:, i], color='black', linewidth=1,
-                         label=f'The original of {data.iloc[:, i].name}')
-            axes[0].hlines(xmin=data.iloc[:, i].index[0], xmax=data.iloc[:, i].index[-1], y=0,
+            axes[0].plot(self.data.iloc[:, i], color='black', linewidth=1,
+                         label=f'The original of {self.data.iloc[:, i].name}')
+            axes[0].hlines(xmin=self.data.iloc[:, i].index[0], xmax=self.data.iloc[:, i].index[-1], y=0,
                            color='gray', linewidth=1)
             axes[0].legend()
             # 원본.
 
-            axes[1].plot(data.iloc[:, i].diff(), color='black', linewidth=1,
-                         label=f'First-difference of {data.iloc[:, i].name}')
-            axes[1].hlines(xmin=data.iloc[:, i].index[0], xmax=data.iloc[:, i].index[-1], y=0,
+            axes[1].plot(self.data.iloc[:, i].diff(), color='black', linewidth=1,
+                         label=f'First-difference of {self.data.iloc[:, i].name}')
+            axes[1].hlines(xmin=self.data.iloc[:, i].index[0], xmax=self.data.iloc[:, i].index[-1], y=0,
                            color='gray', linewidth=1)
             axes[1].legend()
             # 1차 차분.
 
-            axes[2].plot(data.iloc[:, i].diff().diff(), color='black', linewidth=1,
-                         label=f'Second-difference of {data.iloc[:, i].name}')
-            axes[2].hlines(xmin=data.iloc[:, i].index[0], xmax=data.iloc[:, i].index[-1], y=0,
+            axes[2].plot(self.data.iloc[:, i].diff().diff(), color='black', linewidth=1,
+                         label=f'Second-difference of {self.data.iloc[:, i].name}')
+            axes[2].hlines(xmin=self.data.iloc[:, i].index[0], xmax=self.data.iloc[:, i].index[-1], y=0,
                            color='gray', linewidth=1)
             axes[2].legend()
             # 2차 차분.
 
-            axes[3].plot(np.log(data.iloc[:, i] / data.iloc[:, i].shift(seasonality)).dropna(),
+            axes[3].plot(np.log(self.data.iloc[:, i] / self.data.iloc[:, i].shift(seasonality)).dropna(),
                          color='black', linewidth=1,
-                         label=f'No seasonal original of {data.iloc[:, i].name}')
-            axes[3].hlines(xmin=data.iloc[:, i].index[0], xmax=data.iloc[:, i].index[-1], y=0,
+                         label=f'No seasonal original of {self.data.iloc[:, i].name}')
+            axes[3].hlines(xmin=self.data.iloc[:, i].index[0], xmax=self.data.iloc[:, i].index[-1], y=0,
                            color='gray', linewidth=1)
             axes[3].legend()
             # 계절성 제거 후 1차 차분.
 
-            axes[4].plot(np.log(data.iloc[:, i] / data.iloc[:, i].shift(seasonality)).diff().dropna(),
+            axes[4].plot(np.log(self.data.iloc[:, i] / self.data.iloc[:, i].shift(seasonality)).diff().dropna(),
                          color='black', linewidth=1,
-                         label=f'No seasonal first-difference of {data.iloc[:, i].name}')
-            axes[4].hlines(xmin=data.iloc[:, i].index[0], xmax=data.iloc[:, i].index[-1], y=0,
+                         label=f'No seasonal first-difference of {self.data.iloc[:, i].name}')
+            axes[4].hlines(xmin=self.data.iloc[:, i].index[0], xmax=self.data.iloc[:, i].index[-1], y=0,
                            color='gray', linewidth=1)
             axes[4].legend()
             # 계절성 제거 후 1차 차분.
 
             plt.show()
 
-    def adf_test(self, data: pd.DataFrame, seasonality: int):
+    def adf_test(self, seasonality: int):
 
-        for i in range(len(data.columns)):
+        for i in range(len(self.data.columns)):
             if not seasonality:
-                print(f'{data.iloc[:, i].name}')
-                result = adfuller(data.iloc[:, i])
+                print(f'{self.data.iloc[:, i].name}')
+                result = adfuller(self.data.iloc[:, i])
                 print('Original')
                 print(f'Statistics: {result[0]}')
                 print(f'p-value: {result[1]}')
                 print(f'Critical values: {result[4]}')
                 print('---' * 40)
 
-                result = adfuller(data.iloc[:, i].diff().dropna())
+                result = adfuller(self.data.iloc[:, i].diff().dropna())
                 print('The first difference')
                 print(f'Statistics: {result[0]}')
                 print(f'p-value: {result[1]}')
                 print(f'Critical values: {result[4]}')
                 print('---' * 40)
 
-                result = adfuller(data.iloc[:, i].diff().diff().dropna())
+                result = adfuller(self.data.iloc[:, i].diff().diff().dropna())
                 print('The second difference')
                 print(f'Statistics: {result[0]}')
                 print(f'p-value: {result[1]}')
@@ -93,41 +89,43 @@ class ARIMA:
                 print('---' * 40)
 
             if seasonality:
-                print(f'{data.iloc[:, i].name}')
-                result = adfuller(np.log(data.iloc[:, i] / data.iloc[:, i].shift(seasonality)).diff().dropna())
+                print(f'{self.data.iloc[:, i].name}')
+                result = adfuller(
+                    np.log(self.data.iloc[:, i] / self.data.iloc[:, i].shift(seasonality)).diff().dropna())
                 print('No seasonality of original')
                 print(f'Statistics: {result[0]}')
                 print(f'p-value: {result[1]}')
                 print(f'Critical values: {result[4]}')
                 print('---' * 40)
 
-                result = adfuller(np.log(data.iloc[:, i] / data.iloc[:, i].shift(seasonality)).diff().diff().dropna())
+                result = adfuller(
+                    np.log(self.data.iloc[:, i] / self.data.iloc[:, i].shift(seasonality)).diff().diff().dropna())
                 print('No seasonality of first difference')
                 print(f'Statistics: {result[0]}')
                 print(f'p-value: {result[1]}')
                 print(f'Critical values: {result[4]}')
                 print('---' * 40)
 
-    def kpss_test(self, data: pd.DataFrame, seasonality: int):
+    def kpss_test(self, seasonality: int):
 
-        for i in range(len(data.columns)):
+        for i in range(len(self.data.columns)):
             if not seasonality:
-                print(f'{data.iloc[:, i].name}')
-                result = kpss(data.iloc[:, i])
+                print(f'{self.data.iloc[:, i].name}')
+                result = kpss(self.data.iloc[:, i])
                 print('Original')
                 print(f'Statistics: {result[0]}')
                 print(f'p-value: {result[1]}')
                 print(f'Critical values: {result[3]}')
                 print('---' * 40)
 
-                result = kpss(data.iloc[:, i].diff().dropna())
+                result = kpss(self.data.iloc[:, i].diff().dropna())
                 print('The first difference')
                 print(f'Statistics: {result[0]}')
                 print(f'p-value: {result[1]}')
                 print(f'Critical values: {result[3]}')
                 print('---' * 40)
 
-                result = kpss(data.iloc[:, i].diff().diff().dropna())
+                result = kpss(self.data.iloc[:, i].diff().diff().dropna())
                 print('The second difference')
                 print(f'Statistics: {result[0]}')
                 print(f'p-value: {result[1]}')
@@ -135,15 +133,16 @@ class ARIMA:
                 print('---' * 40)
 
             if seasonality:
-                print(f'{data.iloc[:, i].name}')
-                result = kpss(np.log(data.iloc[:, i] / data.iloc[:, i].shift(seasonality)).diff().dropna())
+                print(f'{self.data.iloc[:, i].name}')
+                result = kpss(np.log(self.data.iloc[:, i] / self.data.iloc[:, i].shift(seasonality)).diff().dropna())
                 print('No seasonality of original')
                 print(f'Statistics: {result[0]}')
                 print(f'p-value: {result[1]}')
                 print(f'Critical values: {result[3]}')
                 print('---' * 40)
 
-                result = kpss(np.log(data.iloc[:, i] / data.iloc[:, i].shift(seasonality)).diff().diff().dropna())
+                result = kpss(
+                    np.log(self.data.iloc[:, i] / self.data.iloc[:, i].shift(seasonality)).diff().diff().dropna())
                 print('No seasonality of first difference')
                 print(f'Statistics: {result[0]}')
                 print(f'p-value: {result[1]}')
@@ -233,24 +232,24 @@ class ARIMA:
         model = sm.tsa.statespace.SARIMAX(endog=time_series[12 - max_element:], order=lag, trend='n').fit()
 
         forecasts_m1 = model.forecast(steps=12)
-        forecasts_m1.index = pd.date_range(start=time_series.index[-1] + pd.DateOffset(days=1), periods=12, freq='MS')
+        # forecasts_m1.index = pd.date_range(start=time_series.index[-1] + pd.DateOffset(days=1), periods=12, freq='MS')
         full_seasonal_diff = pd.concat([time_series, forecasts_m1], axis=0)
-        real_scale_forecasts = self.data.to_dict()
+        real_scale_forecasts = self.data
         indexer = full_seasonal_diff.index
-        indexer = pd.to_datetime(indexer)
         predict_date = pd.to_datetime(predict_date)
 
         for idx in np.where(indexer >= predict_date)[0]:
-            temp_val = full_seasonal_diff[idx] + np.log(real_scale_forecasts[indexer[idx - 1]]) + np.log(
-                real_scale_forecasts[indexer[idx - 12]]) - np.log(real_scale_forecasts[indexer[idx - 13]])
-            real_scale_forecasts[indexer[idx]] = np.exp(temp_val)
+            temp_val = full_seasonal_diff[idx] + np.log(real_scale_forecasts.iloc[idx - 1]) + np.log(
+                real_scale_forecasts.iloc[idx - 12]) - np.log(real_scale_forecasts.iloc[idx - 13])
+            real_scale_forecasts.iloc[idx] = np.exp(temp_val)
 
-        real_scale_forecasts_dataframe = pd.DataFrame.from_dict(real_scale_forecasts, orient='index')
+        real_scale_forecasts_dataframe = pd.DataFrame(real_scale_forecasts)
         real_scale_forecasts_dataframe.columns = ['Ground Truth']
         # Figure for M1
         fig, ax1 = plt.subplots(figsize=(10, 6))
         fitted = real_scale_forecasts_dataframe[
-            (real_scale_forecasts_dataframe.index < predict_date) * (real_scale_forecasts_dataframe.index >= start_date)]
+            (real_scale_forecasts_dataframe.index < predict_date) * (
+                        real_scale_forecasts_dataframe.index >= start_date)]
         predicted = real_scale_forecasts_dataframe[real_scale_forecasts_dataframe.index >= predict_date]
 
         color = 'black'
@@ -262,12 +261,9 @@ class ARIMA:
         ax1.legend(loc='upper left')
         plt.show()
 
-
-        self.model = model
-
         return predicted
 
-    def estimate_forecasting_error(self, log: bool, time_series, lag, predict_date):
+    def estimate_forecasting_error(slef, time_series, lag, predict_date):
         checker = time_series.index <= predict_date
 
         train_set = time_series[checker]
@@ -280,18 +276,13 @@ class ARIMA:
         for i in range(n_test):
             crt_time = i + n_train
             x_train = time_series[:crt_time]
-
-            if log:
-                model_1 = sm.tsa.statespace.SARIMAX(endog=x_train, order=lag, trend='n').fit()
-
-            if not log:
-                model_1 = sm.tsa.statespace.SARIMAX(endog=x_train, order=lag, trend='n').fit()
+            model_1 = sm.tsa.statespace.SARIMAX(endog=x_train, order=lag, trend='n').fit()
 
             # one-step-ahead forecasts
             forecast_1 = model_1.forecast(steps=1)
 
             # true one-step-ahead value
-            y = time_series[crt_time]
+            y = time_series.iloc[crt_time]
             ground_truth.append(y)
             f1.append(forecast_1.iloc[0])
             f1_error.append(y - forecast_1.iloc[0])
@@ -335,26 +326,27 @@ if __name__ == "__main__":
     file = "AirPassengers.csv"
     df = pd.read_csv(os.path.join(input_dir, file), header=None, index_col=[0])
     df.index = pd.to_datetime(df.index)
-
+    # dataframe.index= time, dataframe.columns=ground truth
     ARMA = ARIMA(df)
 
-    overall = True
-    if overall:
-        ARMA.plot_time_series(ARMA.data, 12)
-        ARMA.adf_test(ARMA.data, 12)
-        ARMA.kpss_test(ARMA.data, 12)
+    # seasonality
+    ARMA.plot_time_series(seasonality=12)
+    test_time_series = np.log(ARMA.data / ARMA.data.shift(12)).diff().dropna()
+    # test_time_series = ARMA.data
 
-    main = True
-    if main:
-        test_time_series = np.log(ARMA.data / ARMA.data.shift(12)).diff().dropna()
-        # test_time_series = ARMA.data
-
+    stationary = False
+    if stationary:
+        ARMA.adf_test(seasonality=12)
+        ARMA.kpss_test(seasonality=12)
         ARMA.ACF_and_PACF_test(test_time_series, 'passengers')
 
-        lag_list = [(12, 0, 0), (0, 0, [4, 6, 13, 14]), (1, 0, 0)]
+    evaluate = False
+    if evaluate:
+        lag_list = [(1, 0, 0), ([1,12], 0, [1, 9, 12]), (3, 0, 0)]
         ARMA.evaluate_ARIMA(test_time_series, lag_list)
 
-        # ARMA.plot_forecasting(test_time_series.iloc[:-12,0], (12, 0, 0), '1949-01', '1959-01')
-        ARMA.plot_forecasting_log(test_time_series.iloc[:-12,0], (1, 0, 0),'1949-02', '1959-01')
-
-        ARMA.estimate_forecasting_error(False, test_time_series, (0, 0, [4, 6, 13, 14]), '1960-01-01')
+    forecasting = False
+    if forecasting:
+        # ARMA.plot_forecasting(test_time_series.iloc[:-12,0], (12, 0, 0), '1949-01-01', '1959-01-01')
+        ARMA.plot_forecasting_log(test_time_series.iloc[:-12, 0], ([1,12], 0, [1, 9, 12]), '1949-01-01', '1959-01-01')
+        ARMA.estimate_forecasting_error(test_time_series, ([1,12], 0, [1, 9, 12]), '1959-01-01')

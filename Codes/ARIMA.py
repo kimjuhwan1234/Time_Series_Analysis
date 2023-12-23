@@ -322,7 +322,7 @@ class ARIMA:
 
 
 if __name__ == "__main__":
-    input_dir = "../database"
+    input_dir = "../Database"
     file = "AirPassengers.csv"
     df = pd.read_csv(os.path.join(input_dir, file), header=None, index_col=[0])
     df.index = pd.to_datetime(df.index)

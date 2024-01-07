@@ -249,7 +249,7 @@ class ARIMA:
         fig, ax1 = plt.subplots(figsize=(10, 6))
         fitted = real_scale_forecasts_dataframe[
             (real_scale_forecasts_dataframe.index < predict_date) * (
-                        real_scale_forecasts_dataframe.index >= start_date)]
+                    real_scale_forecasts_dataframe.index >= start_date)]
         predicted = real_scale_forecasts_dataframe[real_scale_forecasts_dataframe.index >= predict_date]
 
         color = 'black'
@@ -342,11 +342,11 @@ if __name__ == "__main__":
 
     evaluate = False
     if evaluate:
-        lag_list = [(1, 0, 0), ([1,12], 0, [1, 9, 12]), (3, 0, 0)]
+        lag_list = [(1, 0, 0), ([1, 12], 0, [1, 9, 12]), (3, 0, 0)]
         ARMA.evaluate_ARIMA(test_time_series, lag_list)
 
     forecasting = False
     if forecasting:
         # ARMA.plot_forecasting(test_time_series.iloc[:-12,0], (12, 0, 0), '1949-01-01', '1959-01-01')
-        ARMA.plot_forecasting_log(test_time_series.iloc[:-12, 0], ([1,12], 0, [1, 9, 12]), '1949-01-01', '1959-01-01')
-        ARMA.estimate_forecasting_error(test_time_series, ([1,12], 0, [1, 9, 12]), '1959-01-01')
+        ARMA.plot_forecasting_log(test_time_series.iloc[:-12, 0], ([1, 12], 0, [1, 9, 12]), '1949-01-01', '1959-01-01')
+        ARMA.estimate_forecasting_error(test_time_series, ([1, 12], 0, [1, 9, 12]), '1959-01-01')
